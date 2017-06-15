@@ -46,16 +46,21 @@ export async function isChromeRunning () {
 // TODO: refactor this cuz there's some dumb dumb in here. specifically parentResolve.
 function waitUntilProcessIsReady (startTime = Date.now(), parentResolve = () => {}) {
   return new Promise(async (resolve) => {
+    log('I am waiting for chrome to spawn')
     if (Date.now() - startTime < PROCESS_STARTUP_TIMEOUT) {
       await got(`${HEADLESS_URL}/json`)
         .then(() => {
+          log('Chrome started at last')
           resolve()
           parentResolve()
         })
         .catch(async () => {
+
+          console.log('Catched a err', e)
           await waitUntilProcessIsReady(startTime, resolve)
         })
     } else {
+      log('if statement in waitUntilProcessIsReady is false.')
       resolve()
     }
   })
@@ -84,6 +89,7 @@ export async function spawn () {
         }
       )
 
+      console.log('instance', chrome)
       /*
         chrome.on('error', (error) => {
           log('Failed to start chrome process.', error)

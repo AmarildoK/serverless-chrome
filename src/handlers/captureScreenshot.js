@@ -1,8 +1,8 @@
 import Cdp from 'chrome-remote-interface'
 import config from '../config'
-import { log, sleep } from '../utils'
+import {log, sleep} from '../utils'
 
-export async function captureScreenshotOfUrl (url) {
+export async function captureScreenshotOfUrl(url) {
   const LOAD_TIMEOUT = (config && config.chrome.pageLoadTimeout) || 1000 * 60
 
   let result
@@ -16,9 +16,9 @@ export async function captureScreenshotOfUrl (url) {
   }
 
   const [tab] = await Cdp.List()
-  const client = await Cdp({ host: '127.0.0.1', target: tab })
+  const client = await Cdp({host: '127.0.0.1', target: tab})
 
-  const { Network, Page } = client
+  const {Network, Page} = client
 
   Network.requestWillBeSent((params) => {
     log('Chrome is sending request for:', params.request.url)
@@ -40,7 +40,7 @@ export async function captureScreenshotOfUrl (url) {
       Page.enable(), // https://chromedevtools.github.io/debugger-protocol-viewer/tot/Page/#method-enable
     ])
 
-    await Page.navigate({ url }) // https://chromedevtools.github.io/debugger-protocol-viewer/tot/Page/#method-navigate
+    await Page.navigate({url}) // https://chromedevtools.github.io/debugger-protocol-viewer/tot/Page/#method-navigate
     await loading()
 
     // TODO: resize the chrome "window" so we capture the full height of the page
@@ -51,36 +51,32 @@ export async function captureScreenshotOfUrl (url) {
   }
 
   /* try {
-    log('trying to close tab', tab)
-    await Cdp.Close({ id: tab })
-  } catch (error) {
-    log('unable to close tab', tab, error)
-  }*/
+   log('trying to close tab', tab)
+   await Cdp.Close({ id: tab })
+   } catch (error) {
+   log('unable to close tab', tab, error)
+   }*/
 
   await client.close()
 
   return result
 }
 
-export default (async function captureScreenshotHandler (event) {
-  const { queryStringParameters: { url } } = event
+export default (async function captureScreenshotHandler(event) {
+  const { url } = event
   let screenshot
 
   log('Processing screenshot capture for', url)
 
   try {
     screenshot = await captureScreenshotOfUrl(url)
+    // TODO SAVE SCREENSHOT TO S3
   } catch (error) {
     console.error('Error capturing screenshot for', url, error)
     throw new Error('Unable to capture screenshot')
   }
 
   return {
-    statusCode: 200,
-    // it's not possible to send binary via AWS API Gateway as it expects JSON response from Lambda
-    body: `<html><body><img src="data:image/png;base64,${screenshot}" /></body></html>`,
-    headers: {
-      'Content-Type': 'text/html',
-    },
+    done: true,
   }
 })
