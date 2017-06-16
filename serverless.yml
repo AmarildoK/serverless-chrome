@@ -1,9 +1,9 @@
-service: serverless-chrome
+service: headlessBrowser
 
 provider:
   name: aws
   runtime: nodejs6.10
-  stage: dev
+  stage: live
   region: eu-west-1
   environment:
     CHROME_PATH: ./headless-chrome/headless_shell
